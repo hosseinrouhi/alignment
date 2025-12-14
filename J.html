@@ -1,0 +1,105 @@
+﻿<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <title>بازی جدول DNA</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      margin: 20px auto;
+    }
+    th, td {
+      border: 1px solid #333;
+      width: 60px;
+      height: 40px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      border: none;
+      font-size: 16px;
+      background: transparent;
+    }
+    .correct {
+      background-color: lightgreen;
+    }
+    .wrong {
+      background-color: lightcoral;
+    }
+    th {
+      background-color: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <h2 style="text-align:center;">بازی جدول DNA</h2>
+  <table id="dnaTable"></table>
+
+  <script>
+    // هدر ستون‌ها
+    const colValues = ["-", "A", "T", "C", "G", "A", "G"];
+    // هدر ردیف‌ها
+    const rowValues = ["-", "C", "G", "C", "A", "A", "C", "G"];
+
+    // جواب‌های درست برای هر خانه (مطابق جدول شما)
+    const correctAnswers = [
+      [0, -4, -8, -12, -16, -20, -24],
+      [-4, -2, -6, -6, -10, -14, -18],
+      [-8, -6, -4, -8, -4, -8, -12],
+      [-12, -10, -8, -2, -6, -6, -10],
+      [-16, -10, -12, -6, -4, -4, -8],
+      [-20, -14, -12, -10, -8, -2, -6],
+      [-24, -18, -16, -10, -12, -6, -4],
+      [-28, -22, -20, -12, -8, -10, -4]
+    ];
+
+    const table = document.getElementById("dnaTable");
+
+    // ساخت سطر هدر (ستون‌ها)
+    const headerRow = document.createElement("tr");
+    headerRow.appendChild(document.createElement("th")); // گوشه خالی
+    for (let c = 0; c < colValues.length; c++) {
+      const th = document.createElement("th");
+      th.textContent = colValues[c];
+      headerRow.appendChild(th);
+    }
+    table.appendChild(headerRow);
+
+    // ساخت ردیف‌ها
+    for (let r = 0; r < rowValues.length; r++) {
+      const row = document.createElement("tr");
+
+      // هدر ردیف
+      const th = document.createElement("th");
+      th.textContent = rowValues[r];
+      row.appendChild(th);
+
+      // سلول‌های بازی
+      for (let c = 0; c < colValues.length; c++) {
+        const cell = document.createElement("td");
+        const input = document.createElement("input");
+        input.type = "number";
+
+        input.addEventListener("input", () => {
+          if (parseInt(input.value) === correctAnswers[r][c]) {
+            cell.classList.add("correct");
+            cell.classList.remove("wrong");
+          } else {
+            cell.classList.add("wrong");
+            cell.classList.remove("correct");
+          }
+        });
+
+        cell.appendChild(input);
+        row.appendChild(cell);
+      }
+
+      table.appendChild(row);
+    }
+  </script>
+</body>
+</html>
