@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <title>آموزش الگوریتم Needleman-Wunsch</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+      min-height: 100vh;
+      font-family: 'Vazir', Tahoma, Arial, sans-serif;
+    }
+    
+    .bismillah {
+      text-align: center;
+      font-size: 28px;
+      color: #2E7D32;
+      margin: 20px 0;
+      padding: 15px;
+      background: linear-gradient(90deg, #E8F5E9, #C8E6C9);
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      font-weight: bold;
+      letter-spacing: 2px;
+      border-right: 5px solid #4CAF50;
+      border-left: 5px solid #4CAF50;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .title-container {
+      text-align: center;
+      margin: 30px 0;
+      padding: 20px;
+      background: linear-gradient(90deg, #1976D2, #2196F3);
+      border-radius: 15px;
+      color: white;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    h1 {
+      font-size: 36px;
+      margin: 10px 0;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .subtitle {
+      font-size: 18px;
+      opacity: 0.9;
+      margin-top: 10px;
+    }
+    
+    table {
+      border-collapse: collapse;
+      margin: 20px auto;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    
+    th, td {
+      border: 1px solid #333;
+      width: 70px;
+      height: 50px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: bold;
+      position: relative;
+    }
+    
+    .cell-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .cell-input {
+      width: 50px;
+      height: 100%;
+      text-align: center;
+      border: none;
+      font-size: 16px;
+      background: transparent;
+      outline: none;
+    }
+    
+    .cell-controls {
+      position: absolute;
+      right: 2px;
+      top: 2px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    
+    .control-btn {
+      width: 18px;
+      height: 15px;
+      background: #f0f0f0;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      user-select: none;
+      transition: all 0.2s;
+    }
+    
+    .control-btn:hover {
+      background: #e0e0e0;
+      transform: scale(1.1);
+    }
+    
+    .control-btn:active {
+      transform: scale(0.95);
+    }
+    
+    .inc-btn {
+      color: #4CAF50;
+    }
+    
+    .dec-btn {
+      color: #F44336;
+    }
+    
+    .correct {
+      background-color: lightgreen;
+      animation: pulse 0.5s ease-in-out;
+    }
+    
+    .wrong {
+      background-color: lightcoral;
+      animation: shake 0.5s ease-in-out;
+    }
+    
+    th {
+      background-color: #f0f0f0;
+      color: #333;
+      font-weight: bold;
+    }
+    
+    #toggleBtn {
+      display: block;
+      margin: 10px auto;
+      padding: 12px 25px;
+      font-size: 16px;
+      background: linear-gradient(90deg, #4CAF50, #2E7D32);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+    }
+    
+    #toggleBtn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 8px rgba(0,0,0,0.3);
+      background: linear-gradient(90deg, #45a049, #1B5E20);
+    }
+    
+    .btn {
+      margin: 5px;
+      padding: 10px 20px;
+      font-size: 14px;
+      background: linear-gradient(90deg, #2196F3, #1976D2);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+    
+    .btn-help {
+      background: linear-gradient(90deg, #ff9800, #f57c00);
+    }
+    
+    .btn-help:hover {
+      background: linear-gradient(90deg, #fb8c00, #ef6c00);
+    }
+    
+    .btn-check {
+      background: linear-gradient(90deg, #9c27b0, #7b1fa2);
+    }
+    
+    .btn-check:hover {
+      background: linear-gradient(90deg, #8e24aa, #6a1b9a);
+    }
+    
+    .controls {
+      text-align: center;
+      margin: 20px auto;
+      padding: 15px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+    
+    .progress-container {
+      width: 80%;
+      margin: 25px auto;
+      text-align: center;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+    
+    #progressBar {
+      width: 100%;
+      height: 25px;
+      background-color: #f0f0f0;
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 15px 0;
+      border: 1px solid #ddd;
+    }
+    
+    #progressFill {
+      height: 100%;
+      background: linear-gradient(90deg, #4CAF50, #8BC34A);
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+    
+    #progressText {
+      font-size: 16px;
+      font-weight: bold;
+      color: #333;
+    }
+    
+    .university-info {
+      text-align: center;
+      margin: 30px 0;
+      padding: 20px;
+      background: linear-gradient(90deg, #6A1B9A, #8E24AA);
+      border-radius: 15px;
+      color: white;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .university-title {
+      font-size: 28px;
+      margin: 0 0 10px 0;
+    }
+    
+    .university-department {
+      font-size: 18px;
+      opacity: 0.9;
+      margin: 5px 0;
+    }
+    
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      padding: 25px;
+      background: linear-gradient(90deg, #f5f5f5, #e0e0e0);
+      border-radius: 15px;
+      color: #666;
+      font-size: 14px;
+      border-top: 3px solid #4CAF50;
+    }
+    
+    .credits {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .credit-item {
+      background: white;
+      padding: 12px 25px;
+      border-radius: 25px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s;
+    }
+    
+    .credit-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 12px rgba(0,0,0,0.15);
+    }
+    
+    .ai-icon {
+      color: #2196F3;
+      font-size: 20px;
+    }
+    
+    .copilot-icon {
+      color: #9C27B0;
+      font-size: 20px;
+    }
+    
+    .course-info {
+      background: #E3F2FD;
+      padding: 15px;
+      border-radius: 10px;
+      margin: 20px 0;
+      text-align: center;
+      border-right: 4px solid #2196F3;
+    }
+    
+    .initial-value {
+      color: #666;
+      font-style: italic;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+  </style>
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/font-face.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <!-- بسم الله الرحمن الرحیم -->
+    <div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+    
+    <!-- عنوان اصلی -->
+    <div class="title-container">
+      <h1>آموزش تعاملی الگوریتم Needleman-Wunsch</h1>
+      <div class="subtitle">همترازی سراسری توالی‌های DNA - آموزش گام به گام</div>
+    </div>
+    
+    <!-- اطلاعات درس -->
+    <div class="course-info">
+      <h3 style="color:#1976D2; margin:0 0 10px 0;">درس: زیست‌شناسی محاسباتی و بیوانفورماتیک</h3>
+      <p style="margin:5px 0; color:#333;">تمرین عملی الگوریتم همترازی سراسری توالی‌های نوکلئوتیدی</p>
+    </div>
+    
+    <div class="progress-container">
+      <div id="progressText">پیشرفت: 0% (0 از 49 سلول)</div>
+      <div id="progressBar">
+        <div id="progressFill"></div>
+      </div>
+    </div>
+    
+    <table id="dnaTable"></table>
+    
+    <div class="controls">
+      <button id="toggleBtn">نمایش جواب کامل</button>
+      <button id="helpBtn" class="btn btn-help">راهنمای کامل الگوریتم</button>
+      <button id="checkBtn" class="btn btn-check">بررسی پیشرفت</button>
+    </div>
+    
+    <!-- اطلاعات دانشگاه -->
+    <div class="university-info">
+      <h2 class="university-title">دانشگاه ملایر</h2>
+      <p class="university-department">دانشکده علوم پایه</p>
+      <p class="university-department">گروه زیست‌شناسی</p>
+      <p style="margin-top: 10px; font-size: 16px; opacity: 0.9;">درس زیست‌شناسی محاسباتی - مقطع کارشناسی</p>
+    </div>
+    
+    <!-- فوتر با تشکر -->
+    <div class="footer">
+      <p>این نرم‌افزار آموزشی برای درک بهتر الگوریتم همترازی سراسری توالی‌های DNA طراحی شده است</p>
+      <div class="credits">
+        <div class="credit-item">
+          <span class="ai-icon">🤖</span>
+          <span><strong>توسعه با کمک:</strong> هوش مصنوعی DeepSeek</span>
+        </div>
+        <div class="credit-item">
+          <span class="copilot-icon">🚀</span>
+          <span><strong>همکاری:</strong> Microsoft Copilot</span>
+        </div>
+      </div>
+      <p style="margin-top: 20px; font-size: 12px; color: #888; border-top: 1px solid #ddd; padding-top: 15px;">
+        © ۲۰۲۴ - آموزش الگوریتم Needleman-Wunsch برای همترازی توالی‌های DNA<br>
+        ورژن ۱.۰ | بهینه‌شده برای مرورگرهای مدرن
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const colValues = ["-", "A", "T", "C", "G", "A", "G"];
+    const rowValues = ["-", "C", "G", "C", "A", "A", "C", "G"];
+
+    // جواب‌های درست برای هر خانه - تغییر -12 به -14 در ردیف آخر
+    const correctAnswers = [
+      [0, -4, -8, -12, -16, -20, -24],
+      [-4, -2, -6, -6, -10, -14, -18],
+      [-8, -6, -4, -8, -4, -8, -12],
+      [-12, -10, -8, -2, -6, -6, -10],
+      [-16, -10, -12, -6, -4, -4, -8],
+      [-20, -14, -12, -10, -8, -2, -6],
+      [-24, -18, -16, -10, -12, -6, -4],
+      [-28, -22, -20, -14, -8, -10, -4]  // تغییر داده شد: -12 به -14
+    ];
+
+    const table = document.getElementById("dnaTable");
+    const toggleBtn = document.getElementById("toggleBtn");
+    const helpBtn = document.getElementById("helpBtn");
+    const checkBtn = document.getElementById("checkBtn");
+    const progressFill = document.getElementById("progressFill");
+    const progressText = document.getElementById("progressText");
+    
+    let showAnswers = false;
+    let inputs = [];
+    let totalCells = 49;
+
+    // ایجاد افکت‌های صوتی
+    const createAudio = (url) => {
+      const audio = new Audio(url);
+      audio.volume = 0.3;
+      return audio;
+    };
+
+    const correctSound = createAudio('https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3');
+    const wrongSound = createAudio('https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3');
+    const completeSound = createAudio('https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3');
+
+    // به روزرسانی نوار پیشرفت
+    function updateProgress() {
+      let correctCount = 0;
+      inputs.forEach(item => {
+        const userValue = parseInt(item.input.value);
+        if (!isNaN(userValue) && userValue === correctAnswers[item.r][item.c]) {
+          correctCount++;
+        }
+      });
+      
+      const progressPercent = Math.round((correctCount / totalCells) * 100);
+      progressFill.style.width = `${progressPercent}%`;
+      progressText.textContent = `پیشرفت: ${progressPercent}% (${correctCount} از ${totalCells} سلول)`;
+      
+      if (correctCount === totalCells && !showAnswers) {
+        setTimeout(() => completeSound.play(), 500);
+        progressText.innerHTML += ' 🎉 <span style="color:#4CAF50;">تبریک! جدول کامل شد!</span>';
+      }
+      
+      if (progressPercent < 30) {
+        progressFill.style.background = "linear-gradient(90deg, #f44336, #ff9800)";
+      } else if (progressPercent < 70) {
+        progressFill.style.background = "linear-gradient(90deg, #ff9800, #ffeb3b)";
+      } else {
+        progressFill.style.background = "linear-gradient(90deg, #4CAF50, #8BC34A)";
+      }
+    }
+
+    // تابع برای تنظیم مقدار input
+    function setInputValue(input, value) {
+      // value همیشه مثبت است، پس منفی می‌کنیم
+      const negativeValue = -Math.abs(value);
+      input.value = negativeValue;
+      
+      // ایجاد رویداد input برای بررسی پاسخ
+      const inputEvent = new Event('input', {
+        bubbles: true,
+        cancelable: true,
+      });
+      input.dispatchEvent(inputEvent);
+    }
+
+    // تابع برای پر کردن خودکار ستون و ردیف اول با مقادیر gap
+    function initializeFirstRowAndColumn() {
+      // ستون اول (ردیف‌ها)
+      for (let r = 0; r < rowValues.length; r++) {
+        if (r > 0) { // از ردیف دوم شروع می‌کنیم
+          const cell = document.querySelector(`td[data-row="${r}"][data-col="0"]`);
+          if (cell) {
+            const input = cell.querySelector('input');
+            input.value = correctAnswers[r][0];
+            input.disabled = true;
+            input.classList.add('initial-value');
+            cell.classList.add('correct');
+          }
+        }
+      }
+      
+      // ردیف اول (ستون‌ها)
+      for (let c = 0; c < colValues.length; c++) {
+        if (c > 0) { // از ستون دوم شروع می‌کنیم
+          const cell = document.querySelector(`td[data-row="0"][data-col="${c}"]`);
+          if (cell) {
+            const input = cell.querySelector('input');
+            input.value = correctAnswers[0][c];
+            input.disabled = true;
+            input.classList.add('initial-value');
+            cell.classList.add('correct');
+          }
+        }
+      }
+    }
+
+    // ساخت جدول
+    const headerRow = document.createElement("tr");
+    headerRow.appendChild(document.createElement("th"));
+    for (let c = 0; c < colValues.length; c++) {
+      const th = document.createElement("th");
+      th.textContent = colValues[c];
+      headerRow.appendChild(th);
+    }
+    table.appendChild(headerRow);
+
+    for (let r = 0; r < rowValues.length; r++) {
+      const row = document.createElement("tr");
+
+      const th = document.createElement("th");
+      th.textContent = rowValues[r];
+      row.appendChild(th);
+
+      for (let c = 0; c < colValues.length; c++) {
+        const cell = document.createElement("td");
+        cell.setAttribute('data-row', r);
+        cell.setAttribute('data-col', c);
+        
+        // کانتینر برای سلول
+        const cellContainer = document.createElement("div");
+        cellContainer.className = "cell-container";
+        
+        // ایجاد input
+        const input = document.createElement("input");
+        input.type = "number";
+        input.className = "cell-input";
+        input.placeholder = "-";
+
+        // اگر خانه گوشه بالا چپ است (0,0)
+        if (r === 0 && c === 0) {
+          input.value = "0";
+          input.disabled = true;
+          input.classList.add('initial-value');
+          cell.classList.add('correct');
+        }
+
+        input.addEventListener("input", () => {
+          let userValue = parseInt(input.value);
+          
+          if (userValue > 0) {
+            userValue = -userValue;
+            input.value = userValue;
+          }
+          
+          const correctValue = correctAnswers[r][c];
+          
+          if (!isNaN(userValue)) {
+            if (userValue === correctValue) {
+              cell.classList.add("correct");
+              cell.classList.remove("wrong");
+              setTimeout(() => correctSound.play(), 100);
+            } else {
+              cell.classList.add("wrong");
+              cell.classList.remove("correct");
+              setTimeout(() => wrongSound.play(), 100);
+            }
+          } else {
+            cell.classList.remove("correct", "wrong");
+          }
+          
+          updateProgress();
+        });
+
+        input.addEventListener("blur", () => {
+          if (input.value === "" || input.value === "-") {
+            input.value = "";
+          }
+        });
+
+        // ایجاد دکمه‌های کنترل برای سلول‌هایی که مقدار اولیه نیستند
+        if (!(r === 0 && c === 0) && !(r === 0) && !(c === 0)) {
+          const controlsDiv = document.createElement("div");
+          controlsDiv.className = "cell-controls";
+          
+          // دکمه افزایش (مثبت کردن) - سبز
+          const incBtn = document.createElement("div");
+          incBtn.className = "control-btn inc-btn";
+          incBtn.innerHTML = "▲";
+          incBtn.title = "کم کردن (مثبت‌تر کردن)";
+          incBtn.addEventListener("click", () => {
+            let currentValue = parseInt(input.value) || 0;
+            
+            // اگر کاربر عدد مثبت وارد کرده باشد، آن را منفی می‌کنیم
+            if (currentValue > 0) {
+              currentValue = -currentValue;
+            }
+            
+            if (currentValue === 0) {
+              currentValue = 1; // از 0 به 1 (مثبت)
+            } else {
+              currentValue += 1; // از -5 به -4 (مثبت‌تر)
+            }
+            
+            // اگر بعد از تغییر مثبت شد، منفی می‌کنیم
+            if (currentValue > 0) {
+              currentValue = -currentValue;
+            }
+            
+            setInputValue(input, Math.abs(currentValue)); // مقدار مثبت ارسال می‌شود
+          });
+          
+          // دکمه کاهش (منفی کردن) - قرمز
+          const decBtn = document.createElement("div");
+          decBtn.className = "control-btn dec-btn";
+          decBtn.innerHTML = "▼";
+          decBtn.title = "زیاد کردن (منفی‌تر کردن)";
+          decBtn.addEventListener("click", () => {
+            let currentValue = parseInt(input.value) || 0;
+            
+            // اگر کاربر عدد مثبت وارد کرده باشد، آن را منفی می‌کنیم
+            if (currentValue > 0) {
+              currentValue = -currentValue;
+            }
+            
+            if (currentValue === 0) {
+              currentValue = -1; // از 0 به -1 (منفی)
+            } else {
+              currentValue -= 1; // از -5 به -6 (منفی‌تر)
+            }
+            
+            setInputValue(input, Math.abs(currentValue)); // مقدار مثبت ارسال می‌شود
+          });
+          
+          controlsDiv.appendChild(incBtn);
+          controlsDiv.appendChild(decBtn);
+          cellContainer.appendChild(controlsDiv);
+        }
+
+        cellContainer.appendChild(input);
+        cell.appendChild(cellContainer);
+        row.appendChild(cell);
+        inputs.push({input, cell, r, c});
+      }
+
+      table.appendChild(row);
+    }
+
+    // پر کردن خودکار ستون و ردیف اول
+    setTimeout(() => {
+      initializeFirstRowAndColumn();
+      updateProgress();
+    }, 100);
+
+    // دکمه نمایش/پنهان جواب کامل
+    toggleBtn.addEventListener("click", () => {
+      showAnswers = !showAnswers;
+      
+      if (showAnswers) {
+        toggleBtn.textContent = "پنهان کردن جواب";
+        inputs.forEach(item => {
+          item.input.value = correctAnswers[item.r][item.c];
+          item.cell.classList.add("correct");
+          item.cell.classList.remove("wrong");
+          item.input.disabled = true;
+          
+          // مخفی کردن دکمه‌های کنترل
+          const controls = item.cell.querySelector('.cell-controls');
+          if (controls) {
+            controls.style.display = 'none';
+          }
+        });
+        progressFill.style.width = "100%";
+        progressText.textContent = "پیشرفت: 100% (جدول کامل نمایش داده می‌شود)";
+        progressFill.style.background = "linear-gradient(90deg, #2196F3, #03A9F4)";
+      } else {
+        toggleBtn.textContent = "نمایش جواب کامل";
+        inputs.forEach(item => {
+          // خانه‌های ستون و ردیف اول را دوباره با مقادیر gap پر می‌کنیم
+          if (item.r === 0 || item.c === 0) {
+            item.input.value = correctAnswers[item.r][item.c];
+            item.input.disabled = true;
+            item.cell.classList.add("correct");
+            
+            // مخفی کردن دکمه‌های کنترل برای سلول‌های اولیه
+            const controls = item.cell.querySelector('.cell-controls');
+            if (controls) {
+              controls.style.display = 'none';
+            }
+          } else {
+            item.input.value = "";
+            item.input.placeholder = "-";
+            item.cell.classList.remove("correct");
+            item.cell.classList.remove("wrong");
+            item.input.disabled = false;
+            
+            // نمایش دکمه‌های کنترل
+            const controls = item.cell.querySelector('.cell-controls');
+            if (controls) {
+              controls.style.display = 'flex';
+            }
+          }
+        });
+        updateProgress();
+      }
+    });
+
+    // دکمه راهنمای بازی
+    helpBtn.addEventListener("click", () => {
+      const helpMessage = `
+      <div style="text-align:right; line-height:1.8; padding:20px; max-width:650px;">
+        <div style="background: linear-gradient(90deg, #1976D2, #2196F3); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+          <h2 style="margin:0; font-size:28px;">🧬 راهنمای جامع الگوریتم Needleman-Wunsch</h2>
+          <p style="margin:10px 0 0 0; opacity:0.9;">الگوریتم همترازی سراسری توالی‌های DNA</p>
+        </div>
+        
+        <div style="background:#e3f2fd; padding:15px; border-radius:10px; margin:15px 0;">
+          <h3 style="color:#1976D2;">📊 سیستم امتیازدهی:</h3>
+          <div style="display:flex; justify-content:space-between; flex-wrap:wrap;">
+            <div style="background:#c8e6c9; padding:10px; border-radius:5px; margin:5px; flex:1; min-width:150px;">
+              <div style="font-size:20px; color:green;">+2</div>
+              <div><strong>Match (تشابه)</strong></div>
+              <div>دو نوکلئوتید یکسان</div>
+              <div>A↔A , C↔C , G↔G , T↔T</div>
+            </div>
+            <div style="background:#ffcdd2; padding:10px; border-radius:5px; margin:5px; flex:1; min-width:150px;">
+              <div style="font-size:20px; color:red;">-2</div>
+              <div><strong>Mismatch (عدم تشابه)</strong></div>
+              <div>دو نوکلئوتید متفاوت</div>
+              <div>A↔C , G↔T , ...</div>
+            </div>
+            <div style="background:#fff3e0; padding:10px; border-radius:5px; margin:5px; flex:1; min-width:150px;">
+              <div style="font-size:20px; color:orange;">-4</div>
+              <div><strong>Gap (فاصله)</strong></div>
+              <div>حذف یا درج در توالی</div>
+              <div>A↔- , -↔C , ...</div>
+            </div>
+          </div>
+        </div>
+        
+        <h3 style="color:#388E3C;">🎯 مراحل اجرای الگوریتم:</h3>
+        
+        <div style="background:#f1f8e9; padding:15px; border-radius:10px; margin:15px 0;">
+          <h4>📍 مرحله ۱: مقداردهی اولیه ماتریس</h4>
+          <p>ردیف اول و ستون اول ماتریس با امتیازات gap مقداردهی می‌شوند:</p>
+          <div style="text-align:center; font-family:monospace; background:#333; color:white; padding:10px; border-radius:5px; margin:10px 0;">
+            <div>ردیف اول: ۰ → -۴ → -۸ → -۱۲ → -۱۶ → -۲۰ → -۲۴</div>
+            <div>ستون اول: ۰ → -۴ → -۸ → -۱۲ → -۱۶ → -۲۰ → -۲۴ → -۲۸</div>
+          </div>
+          <p><small>(هر سلول جدید = سلول قبلی + (-4))</small></p>
+          <p style="color:#666; font-style:italic;">→ در این شبیه‌ساز، این مقادیر از قبل پر شده‌اند.</p>
+        </div>
+        
+        <div style="background:#fff3e0; padding:15px; border-radius:10px; margin:15px 0;">
+          <h4>📍 مرحله ۲: پر کردن ماتریس امتیازات</h4>
+          <p>برای هر سلول، بهترین امتیاز از سه گزینه زیر محاسبه می‌شود:</p>
+          
+          <div style="text-align:center; margin:20px 0;">
+            <table style="margin:0 auto; border:2px solid #333; background:#f9f9f9;">
+              <tr>
+                <td style="border:1px solid #ccc; padding:10px; background:#e1f5fe;">↖️ مورب</td>
+                <td style="border:1px solid #ccc; padding:10px; background:#f1f8e9;">⬆️ بالا</td>
+              </tr>
+              <tr>
+                <td style="border:1px solid #ccc; padding:10px; background:#fff3e0;">⬅️ چپ</td>
+                <td style="border:2px solid red; padding:15px; background:#ffebee; font-size:18px;"><strong>سلول جاری</strong></td>
+              </tr>
+            </table>
+          </div>
+          
+          <div style="background:#f5f5f5; padding:15px; border-radius:8px; margin:10px 0;">
+            <p><strong>فرمول محاسبه:</strong></p>
+            <p>۱. <strong>گزینه مورب:</strong> Score(i-1, j-1) + S(xᵢ, yⱼ)</p>
+            <p>۲. <strong>گزینه چپ:</strong> Score(i, j-1) + gap penalty</p>
+            <p>۳. <strong>گزینه بالا:</strong> Score(i-1, j) + gap penalty</p>
+            <p style="margin-top:10px; font-size:14px; color:#666;">
+              که در آن S(xᵢ, yⱼ) امتیاز match/mismatch برای نوکلئوتیدهای i و j است
+            </p>
+          </div>
+          
+          <h4 style="color:#D32F2F; margin-top:20px;">📝 مثال عملی:</h4>
+          <p>محاسبه سلول (ردیف ۲، ستون ۲) - مقایسه C با A:</p>
+          
+          <div style="background:#fff; border:2px solid #ddd; padding:15px; border-radius:10px; margin:15px 0;">
+            <div style="display:grid; grid-template-columns:100px 100px; gap:10px; justify-content:center; margin:15px 0;">
+              <div style="background:#e8f5e9; padding:15px; border-radius:5px; text-align:center;">
+                <strong>0</strong><br>
+                <small>مورب</small>
+              </div>
+              <div style="background:#ffecb3; padding:15px; border-radius:5px; text-align:center;">
+                <strong>-4</strong><br>
+                <small>بالا</small>
+              </div>
+              <div style="background:#e1f5fe; padding:15px; border-radius:5px; text-align:center;">
+                <strong>-4</strong><br>
+                <small>چپ</small>
+              </div>
+              <div style="background:#e3f2fd; padding:15px; border-radius:5px; text-align:center; border:2px solid #2196F3;">
+                <strong>؟</strong><br>
+                <small>جاری</small>
+              </div>
+            </div>
+            
+            <div style="margin-top:15px;">
+              <p><strong>محاسبات:</strong></p>
+              <p>• C و A متفاوت هستند → mismatch penalty = -2</p>
+              <p>• گزینه مورب: 0 + (-2) = <span style="color:red;">-2</span></p>
+              <p>• گزینه چپ: (-4) + (-4) = <span style="color:red;">-8</span></p>
+              <p>• گزینه بالا: (-4) + (-4) = <span style="color:red;">-12</span></p>
+            </div>
+            
+            <div style="margin-top:15px; padding:15px; background:#e8f5e9; border-radius:5px; border-right:4px solid #4CAF50;">
+              <p><strong>انتخاب نهایی:</strong> بیشترین مقدار (max) انتخاب می‌شود</p>
+              <p style="text-align:center; font-size:22px; font-weight:bold; color:#2E7D32;">
+                max(-2, -8, -12) = -2
+              </p>
+              <p style="text-align:center;">پس مقدار سلول: <span style="font-size:26px; color:#1B5E20;"><strong>-2</strong></span></p>
+            </div>
+          </div>
+        </div>
+        
+        <div style="background:#fce4ec; padding:15px; border-radius:10px; margin:15px 0;">
+          <h4>💡 نکات کلیدی الگوریتم:</h4>
+          <ul style="padding-right:20px;">
+            <li>الگوریتم Needleman-Wunsch یک الگوریتم برنامه‌نویسی پویا است</li>
+            <li>برای یافتن بهترین همترازی سراسری بین دو توالی استفاده می‌شود</li>
+            <li>پیچیدگی زمانی: O(m×n) که m و n طول توالی‌ها هستند</li>
+            <li>همیشه بیشترین امتیاز را انتخاب کنید (کمترین مقدار منفی)</li>
+            <li>این الگوریتم پایه بسیاری از ابزارهای بیوانفورماتیکی است</li>
+          </ul>
+        </div>
+        
+        <div style="background:#e8f5e9; padding:20px; border-radius:10px; margin-top:20px; border:2px solid #4CAF50;">
+          <h4 style="color:#2E7D32;">🎮 راهنمای استفاده از این شبیه‌ساز:</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:15px;">
+            <div style="background:white; padding:15px; border-radius:8px; text-align:center;">
+              <div style="font-size:24px; margin-bottom:10px;">۱</div>
+              <div><strong>ردیف/ستون اول</strong><br>از قبل با gap پر شده</div>
+            </div>
+            <div style="background:white; padding:15px; border-radius:8px; text-align:center;">
+              <div style="font-size:24px; margin-bottom:10px;">۲</div>
+              <div><strong>سه گزینه</strong><br>را برای هر سلول حساب کنید</div>
+            </div>
+            <div style="background:white; padding:15px; border-radius:8px; text-align:center;">
+              <div style="font-size:24px; margin-bottom:10px;">۳</div>
+              <div><strong>بیشترین امتیاز</strong><br>را انتخاب کنید</div>
+            </div>
+            <div style="background:white; padding:15px; border-radius:8px; text-align:center;">
+              <div style="font-size:24px; margin-bottom:10px;">۴</div>
+              <div><strong>سبز شدن سلول</strong><br>= پاسخ صحیح!</div>
+            </div>
+          </div>
+        </div>
+        
+        <div style="background:#e3f2fd; padding:15px; border-radius:8px; margin-top:20px;">
+          <h4 style="color:#1976D2;">🎯 نکته مهم:</h4>
+          <p>در جدول این تمرین، مقدار سلول (ردیف ۸، ستون ۴) به <strong>-14</strong> تغییر یافته است.</p>
+          <p>دلیل: محاسبه مجدد این سلول با فرمول الگوریتم نتیجه متفاوتی دارد.</p>
+        </div>
+        
+        <div style="background:#fff3e0; padding:15px; border-radius:8px; margin-top:20px;">
+          <h4 style="color:#FF9800;">🎯 راهنمای دکمه‌های کنترل:</h4>
+          <div style="display:flex; align-items:center; gap:10px; margin:10px 0;">
+            <div style="background:#4CAF50; color:white; padding:5px 10px; border-radius:5px; font-size:12px;">▲ سبز</div>
+            <div>کم کردن عدد (مثبت‌تر کردن): -5 → -4</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; margin:10px 0;">
+            <div style="background:#F44336; color:white; padding:5px 10px; border-radius:5px; font-size:12px;">▼ قرمز</div>
+            <div>زیاد کردن عدد (منفی‌تر کردن): -5 → -6</div>
+          </div>
+        </div>
+        
+        <p style="text-align:center; margin-top:25px; padding:15px; background:#f5f5f5; border-radius:8px; border:1px dashed #2196F3;">
+          <span style="color:#2196F3; font-weight:bold;">📚 منبع:</span> 
+          Needleman, S. B. & Wunsch, C. D. (1970). A general method applicable to the search for similarities in the amino acid sequence of two proteins.
+        </p>
+      </div>
+      `;
+      
+      const helpWindow = window.open("", "راهنمای الگوریتم Needleman-Wunsch", "width=750,height=1050,scrollbars=yes");
+      helpWindow.document.write(`
+        <html dir="rtl">
+          <head>
+            <title>راهنمای جامع الگوریتم Needleman-Wunsch</title>
+            <style>
+              body { 
+                font-family: 'Vazir', Tahoma, Arial, sans-serif; 
+                margin: 0;
+                padding: 0;
+                background: #f8f9fa;
+                line-height: 1.6;
+              }
+              .container {
+                padding: 20px;
+                max-width: 700px;
+                margin: 0 auto;
+              }
+              h2, h3, h4 { 
+                font-family: 'Vazir', 'Segoe UI', Tahoma, sans-serif; 
+                margin-top: 1.5em;
+              }
+              h2 { font-size: 28px; }
+              h3 { font-size: 22px; }
+              h4 { font-size: 18px; }
+              ul { padding-right: 25px; }
+              li { margin-bottom: 8px; }
+            </style>
+            <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/font-face.css" rel="stylesheet">
+          </head>
+          <body>
+            <div class="container">
+              ${helpMessage}
+            </div>
+          </body>
+        </html>
+      `);
+    });
+
+    // دکمه بررسی پیشرفت
+    checkBtn.addEventListener("click", () => {
+      let correctCount = 0;
+      let emptyCount = 0;
+      let wrongCount = 0;
+      
+      inputs.forEach(item => {
+        const userValue = parseInt(item.input.value);
+        if (isNaN(userValue)) {
+          emptyCount++;
+        } else if (userValue === correctAnswers[item.r][item.c]) {
+          correctCount++;
+        } else {
+          wrongCount++;
+        }
+      });
+      
+      const progressPercent = Math.round((correctCount / totalCells) * 100);
+      
+      const message = `
+      <div style="text-align:center; padding:20px;">
+        <div style="background: linear-gradient(90deg, #6A1B9A, #8E24AA); color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+          <h3 style="margin:0;">📊 گزارش پیشرفت آموزشی</h3>
+          <p style="margin:5px 0 0 0; opacity:0.9;">دانشگاه ملایر - گروه زیست‌شناسی</p>
+        </div>
+        
+        <div style="font-size:48px; margin:20px; color:#4CAF50;">${progressPercent}%</div>
+        
+        <div style="display:flex; justify-content:center; gap:20px; margin:20px; flex-wrap:wrap;">
+          <div style="background:#4CAF50; color:white; padding:15px; border-radius:10px; width:120px;">
+            <div style="font-size:28px;">${correctCount}</div>
+            <div>سلول صحیح</div>
+          </div>
+          <div style="background:#f44336; color:white; padding:15px; border-radius:10px; width:120px;">
+            <div style="font-size:28px;">${wrongCount}</div>
+            <div>سلول نادرست</div>
+          </div>
+          <div style="background:#2196F3; color:white; padding:15px; border-radius:10px; width:120px;">
+            <div style="font-size:28px;">${emptyCount}</div>
+            <div>سلول خالی</div>
+          </div>
+        </div>
+        
+        <p style="font-size:18px; margin:20px 0;"><strong>وضعیت یادگیری:</strong> ${getProgressMessage(progressPercent)}</p>
+        
+        <div style="margin-top:30px;">
+          <div style="background:#f0f0f0; height:25px; border-radius:12px; overflow:hidden; position:relative;">
+            <div style="background:linear-gradient(90deg, #4CAF50, #8BC34A); height:100%; width:${progressPercent}%"></div>
+          </div>
+          <div style="margin-top:10px; font-size:14px;">
+            ${correctCount} از ${totalCells} سلول صحیح پر شده
+          </div>
+        </div>
+        
+        ${progressPercent < 100 ? `
+          <div style="margin-top:30px; background:#fff3e0; padding:15px; border-radius:10px;">
+            <h4>🎯 نکته برای ادامه:</h4>
+            <p>${getTipMessage(progressPercent)}</p>
+          </div>
+        ` : ''}
+      </div>
+      `;
+      
+      const progressWindow = window.open("", "گزارش پیشرفت", "width=400,height=550");
+      progressWindow.document.write(`
+        <html dir="rtl">
+          <head>
+            <title>گزارش پیشرفت بازی</title>
+            <style>
+              body { 
+                font-family: Tahoma, Arial; 
+                margin: 0; 
+                padding: 0;
+                background: #f8f9fa;
+              }
+            </style>
+          </head>
+          <body>${message}</body>
+        </html>
+      `);
+    });
+
+    // تابع برای پیام وضعیت پیشرفت
+    function getProgressMessage(percent) {
+      if (percent === 0) return "شروع کنید! ردیف و ستون اول از قبل پر شده‌اند 🚀";
+      if (percent < 25) return "تازه شروع کردید، ادامه دهید! 💪";
+      if (percent < 50) return "در حال پیشرفت هستید، آفرین! 👍";
+      if (percent < 75) return "عالی کار می‌کنید! 🌟";
+      if (percent < 100) return "نزدیک به پایان هستید، ادامه دهید! 🏁";
+      return "تبریک! جدول کامل شد! 🎉🏆";
+    }
+
+    // تابع برای نکات راهنمایی
+    function getTipMessage(percent) {
+      if (percent === 0) return "ردیف و ستون اول از قبل با مقادیر gap (-4) پر شده‌اند. حالا بقیه سلول‌ها را پر کنید!";
+      if (percent < 25) return "یادتان باشد: Match = +2, Mismatch = -2, Gap = -4";
+      if (percent < 50) return "برای هر سلول، سه گزینه (مورب، چپ، بالا) را بررسی و بهترین را انتخاب کنید!";
+      if (percent < 75) return "توجه: سلول (ردیف ۸، ستون ۴) جوابش -14 است نه -12!";
+      return "تقریباً تمام شده، دقت کنید اشتباه نزنید!";
+    }
+
+    // به روزرسانی اولیه نوار پیشرفت
+    updateProgress();
+  </script>
+</body>
+</html>
